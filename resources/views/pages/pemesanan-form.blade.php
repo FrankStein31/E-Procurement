@@ -71,7 +71,7 @@
                 if (cekNomorPerbandingan == '' && searchParams.get('ref') == 'notification' && searchParams.get('nomor')) {
                     cekNomorPerbandingan = searchParams.get('nomor')
                 }
-                
+
                 if (cekNomorPerbandingan != '') {
                     const url = `{{ url('pemesanan-barang/pilih-perbandingan') }}/${cekNomorPerbandingan}`
                     getDataPerbandingan(url, cekNomorPerbandingan)

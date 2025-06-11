@@ -41,7 +41,7 @@ class PerbandinganHarga extends Model
     {
         return $this->hasMany(PerbandinganHargaVendor::class, 'perbandingan_id');
     }
-    
+
     public function pemesanan()
     {
         return $this->hasMany(PemesananBarang::class, 'perbandingan_id');
@@ -72,27 +72,35 @@ class PerbandinganHarga extends Model
         return $this->hasMany(PerbandinganHargaItemBarang::class);
     }
 
-     public function getListVendorWithHargaBarang()
-    {
-        $vendors = $this->perbandinganHargaVendor()->with(['vendor', 'hargaBarangIndexed'])->get();
+    public function getListVendorWithHargaBarang()
+{
+    $vendors = $this->perbandinganHargaVendor()->with(['vendor', 'hargaBarangIndexed'])->get();
 
-        $list_vendor = [];
+    $list_vendor = [];
 
-        foreach ($vendors as $vendor) {
-            $nama_vendor = $vendor->vendor->nama;
-            $list_vendor[$nama_vendor] = [];
+    foreach ($vendors as $vendor) {
+        $nama_vendor = $vendor->vendor->nama ?? 'Tanpa Nama Vendor';
 
-            foreach ($vendor->hargaBarangIndexed as $barang) {
-                $list_vendor[$nama_vendor][$barang->pengajuan_barang_detail_id] = [
-                    'harga_satuan' => $barang->harga_satuan,
-                    'total_harga' => $barang->harga_satuan * $barang->jumlah,
-                    'pemesanan' => $barang->pemesanan,
-                ];
-            }
+
+        $list_vendor[$nama_vendor] = (object)[
+            'status_penawaran' => $vendor->status_penawaran,
+            'batas_waktu_penawaran' => $vendor->batas_waktu_penawaran,
+            'harga_barang' => []
+        ];
+
+       
+        foreach ($vendor->hargaBarangIndexed as $barang) {
+            $list_vendor[$nama_vendor]->harga_barang[$barang->pengajuan_barang_detail_id] = [
+                'harga_satuan' => $barang->harga_satuan,
+                'total_harga' => $barang->harga_satuan * $barang->jumlah,
+                'pemesanan' => $barang->pemesanan,
+            ];
         }
-
-        return $list_vendor;
     }
+
+    return $list_vendor;
+}
+
 
     // Ambil vendor tertentu dari pivot
     public function vendorPivot($vendorId)
@@ -136,8 +144,8 @@ class PerbandinganHarga extends Model
 
     public function canStartNegosiasi()
     {
-        return $this->status === 'penawaran' && 
-               $this->isPenawaranExpired() && 
+        return $this->status === 'penawaran' &&
+               $this->isPenawaranExpired() &&
                $this->getVendorByStatus('diterima')->count() > 0;
     }
 

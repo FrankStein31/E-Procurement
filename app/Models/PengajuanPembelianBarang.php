@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PengajuanPembelianBarang extends Model
 {
@@ -15,44 +15,61 @@ class PengajuanPembelianBarang extends Model
     protected $guarded = ['id'];
     public $timestamps = false;
 
-    public function detail()
+    /**
+     * Relasi ke detail pengajuan (banyak detail per pengajuan)
+     */
+    public function detail(): HasMany
     {
         return $this->hasMany(PengajuanPembelianBarangDetail::class, 'pengajuan_id');
     }
 
-    public function user()
+    /**
+     * Relasi ke user yang membuat pengajuan
+     */
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Relasi ke perbandingan harga
+     */
     public function perbandingan()
     {
         return $this->hasOne(PerbandinganHarga::class, 'pengajuan_id');
     }
 
+    /**
+     * Relasi ke pemesanan barang
+     */
     public function pemesanan()
     {
         return $this->hasOne(PemesananBarang::class, 'pengajuan_id');
     }
 
-    // Relasi ke detail barang (RiwayatBarang)
-    public function riwayatBarang()
+    /**
+     * Relasi ke riwayat barang
+     */
+    public function riwayatBarang(): HasMany
     {
-        return $this->hasMany(RiwayatBarang::class, 'pengajuan_id'); // Relasi ke RiwayatBarang
+        return $this->hasMany(RiwayatBarang::class, 'pengajuan_id');
     }
 
-    // Tambahkan di dalam class PengajuanPembelianBarang:
-
-    public function rfqs()
+    /**
+     * Relasi ke RFQ
+     */
+    public function rfqs(): HasMany
     {
         return $this->hasMany(Rfq::class);
     }
 
-    // Method helper untuk cek apakah sudah ada RFQ
+    /**
+     * Mengecek apakah pengajuan memiliki RFQ aktif (dibuat atau berlangsung)
+     */
     public function hasActiveRfq(): bool
     {
         return $this->rfqs()
-                    ->whereIn('status', [Rfq::STATUS_DIBUAT, Rfq::STATUS_BERLANGSUNG])
-                    ->exists();
+            ->whereIn('status', [Rfq::STATUS_DIBUAT, Rfq::STATUS_BERLANGSUNG])
+            ->exists();
     }
-
 }
