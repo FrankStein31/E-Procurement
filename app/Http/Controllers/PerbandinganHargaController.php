@@ -29,6 +29,10 @@ class PerbandinganHargaController extends Controller
         if ($user->cannot('read perbandingan-harga')) {
             return abort(403, 'Kamu tidak memiliki hak akses ke halaman ini');
         }
+        PerbandinganHargaVendor::where('status_penawaran', '!=', 'berakhir')
+    ->whereNotNull('batas_waktu_penawaran')
+    ->where('batas_waktu_penawaran', '<', now())
+    ->update(['status_penawaran' =>'berakhir']);
 
          if ($user->hasRole('vendor_rekanan')) {
             $vendorId = $user->vendor->id ?? null;
