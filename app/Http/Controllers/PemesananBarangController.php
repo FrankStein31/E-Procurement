@@ -19,16 +19,25 @@ class PemesananBarangController extends Controller
     //
     public function index()
     {
-        // ada perubahan disini
-        $list_pemesanan = PemesananBarang::with('user', 'perbandingan', 'vendor')
+        $query = PemesananBarang::with('user', 'perbandingan', 'vendor')
             ->withCount([
                 'detail',
                 'penerimaan' => fn ($query) => $query->where('batal', 0)
-            ])
-            ->paginate(10);        
-
+            ]);
+    
+        // Cek apakah user adalah admin_logistik
+        if (!Auth::user()->hasRole('admin_logistik')) {
+            // Jika bukan admin_logistik, hanya tampilkan data milik vendor terkait
+            $query->whereHas("vendor", function($q) {
+                $q->where("user_id", Auth::id());
+            });
+        }
+    
+        $list_pemesanan = $query->paginate(10);
+    
         return view('pages.pemesanan', compact('list_pemesanan'));
     }
+    
 
         public function create()
     {
