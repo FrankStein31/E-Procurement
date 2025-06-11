@@ -16,28 +16,28 @@ use App\Http\Controllers\VendorQuotationController;
 use Illuminate\Notifications\DatabaseNotification as Notification;
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | Route Publik
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 
-Route::get('/', fn () => view('beranda'));
+Route::get('/', fn() => view('beranda'));
 
-Route::get('/syarat', fn () => view('syarat'))->name('syarat');
-Route::get('/tentang', fn () => view('tentang'))->name('tentang');
+Route::get('/syarat', fn() => view('syarat'))->name('syarat');
+Route::get('/tentang', fn() => view('tentang'))->name('tentang');
 
 
 
 /*
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 | Route yang Memerlukan Autentikasi
-|-------------------------------------------------------------------------- 
+|--------------------------------------------------------------------------
 */
 
 Route::middleware(['auth', 'verified'])->group(function () {
 
     // Dashboard
-    Route::get('/dashboard', fn () => view('dashboard'))->name('dashboard');
+Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Notifikasi
     Route::get('notification/{notification}', function (Notification $notification) {
@@ -45,18 +45,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
     })->name('notification');
 
     /*
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     | Vendor Routes (akses terbatas berdasarkan role vendor)
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     */
 
     Route::resource('vendor', VendorController::class)->except(['show']);
 
 
     /*
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     | Pengajuan Pembelian Barang
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     */
     Route::put('pengajuan-pembelian-barang/batal/{pengajuan_pembelian_barang}', [PengajuanPembelianBarangController::class, 'batal'])
         ->name('pengajuan-pembelian-barang.batal');
@@ -66,11 +66,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('pengajuan-pembelian-barang/upload-excel', [PengajuanPembelianBarangController::class, 'uploadExcel'])->name('pengajuan-pembelian-barang.upload-excel');
     Route::resource('pengajuan-pembelian-barang', PengajuanPembelianBarangController::class)->except(['destroy']);
 
-    
+
     /*
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     | Perbandingan Harga
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     */
     Route::group(['prefix' => 'perbandingan-harga', 'as' => 'perbandingan-harga.'], function () {
         Route::get('cari-pengajuan', [PerbandinganHargaController::class, 'cariPengajuan'])->name('cari-pengajuan');
@@ -99,11 +99,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('perbandingan-harga/vendor', [PerbandinganHargaController::class, 'listVendorForVendor'])
         ->name('perbandingan-harga.vendor.index');
 
-    
+
     /*
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     | Pemesanan Barang
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     */
     Route::prefix('pemesanan-barang')->name('pemesanan-barang.')->group(function () {
         Route::get('cari-perbandingan', [PemesananBarangController::class, 'cariPerbandingan'])->name('cari-perbandingan');
@@ -115,9 +115,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('pemesanan-barang', PemesananBarangController::class)->except(['destroy']);
 
     /*
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     | Penerimaan Barang
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     */
     Route::prefix('penerimaan-barang')->name('penerimaan-barang.')->group(function () {
         Route::get('cari-pemesanan', [PenerimaanBarangController::class, 'cariPemesanan'])->name('cari-pemesanan');
@@ -128,9 +128,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('penerimaan-barang', PenerimaanBarangController::class)->except(['destroy']);
 
     /*
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     | Riwayat Barang
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     */
     Route::prefix('riwayat-barang')->name('riwayat-barang.')->group(function () {
         Route::get('cari', [RiwayatBarangController::class, 'index'])->name('cari');
@@ -145,12 +145,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::resource('riwayat-barang', RiwayatBarangController::class)->except(['destroy']);  // Menggunakan resource controller dengan pengecualian pada destroy
 
 
-        
-   /*
-    |--------------------------------------------------------------------------
-    | RFQ (Request for Quotation) Routes
-    |--------------------------------------------------------------------------
-    */
+
+    /*
+     |--------------------------------------------------------------------------
+     | RFQ (Request for Quotation) Routes
+     |--------------------------------------------------------------------------
+     */
     // routes/web.php - RFQ Routes
     // Route::prefix('rfq')->name('rfq.')->group(function () {
     //     Route::get('/', [RfqController::class, 'index'])->name('index');
@@ -166,9 +166,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // });
 
     /*
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     | Profile
-    |-------------------------------------------------------------------------- 
+    |--------------------------------------------------------------------------
     */
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

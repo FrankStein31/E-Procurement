@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
+use Carbon\Carbon;
 use App\Notifications\NotificationHandler;
 use Illuminate\Support\Facades\Notification;
 
@@ -154,14 +155,21 @@ class PerbandinganHargaController extends Controller
         $perbandingan_harga->load([
             'pengajuanDetail',
             'perbandinganHargaVendor.vendor',
-            'perbandinganHargaVendor.hargaBarangIndexed'
+            'perbandinganHargaVendor.hargaBarangIndexed',
+            'perbandinganHargaVendor'
         ]);
+        $semuaSudahLewat = $perbandingan_harga->perbandinganHargaVendor->count() > 0 &&
+        $perbandingan_harga->perbandinganHargaVendor->every(function ($phv) {
+            return $phv->batas_waktu_penawaran &&
+                   Carbon::now('Asia/Jakarta')->greaterThan(Carbon::parse($phv->batas_waktu_penawaran));
+        });
 
         $list_vendor = $perbandingan_harga->getListVendorWithHargaBarang();
 
         return view('pages.perbandingan-list-vendor', [
             'perbandingan' => $perbandingan_harga,
-            'list_vendor' => $list_vendor
+            'list_vendor' => $list_vendor,
+            'semuaSudahLewat' => $semuaSudahLewat
         ]);
     }
 
@@ -267,6 +275,21 @@ class PerbandinganHargaController extends Controller
             $perbandingan_harga_vendor->tanggal_respon = now();
             $perbandingan_harga_vendor->save();
 
+            $pengajuanDetails = $perbandingan_harga_vendor->perbandinganHarga->pengajuanDetail;
+
+            foreach ($pengajuanDetails as $detail) {
+                // Cegah duplikasi
+                $exists = PerbandinganHargaItemBarang::where('perbandingan_vendor_id', $perbandingan_harga_vendor->id)
+                    ->where('pengajuan_barang_detail_id', $detail->id)
+                    ->exists();
+
+                if (!$exists) {
+                    PerbandinganHargaItemBarang::create([
+                        'perbandingan_vendor_id' => $perbandingan_harga_vendor->id,
+                        'pengajuan_barang_detail_id' => $detail->id,
+                    ]);
+                }
+            }
             return redirect()->route('perbandingan-harga.vendor.index')
                 ->with('success', 'Anda telah menolak undangan penawaran.');
         }
